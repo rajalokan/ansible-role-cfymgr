@@ -1,0 +1,38 @@
+---
+- name: Get Binary
+  get_url:
+    url: http://repository.cloudifysource.org/cloudify/4.4.0/ga-release/cloudify-manager-install-4.4ga.rpm
+    dest: /tmp/cfymgr.rpm
+
+- name: Install Binary
+  yum:
+    name: /tmp/cfymgr.rpm
+    state: present
+  become: true
+
+- name: Edit config file -- private_ip
+  lineinfile:
+    path: /etc/cloudify/config.yaml
+    regexp: '^  private_ip:'
+    line: "  private_ip: {{ ansible_default_ipv4.address }}"
+  become: true
+
+- name: Edit config file -- public_ip
+  lineinfile:
+    path: /etc/cloudify/config.yaml
+    regexp: '^  public_ip:'
+    line: "  public_ip: {{ ansible_default_ipv4.address }}"
+  become: true
+
+- name: Edit config file -- admin_password
+  lineinfile:
+    path: /etc/cloudify/config.yaml
+    regexp: '^    admin_password:'
+    line: "    admin_password: {{ admin_password }}"
+  become: true
+
+- name: Install manager
+  command: cfy_manager install
+  args:
+    creates: /etc/cloudify/manager_installed
+  become: true
